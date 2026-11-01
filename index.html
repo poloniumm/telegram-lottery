@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100d20">
+<title>Jackpot — Scratch Lottery</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #100d20;
+    --card: #1d1730;
+    --gold: #f7d783;
+    --gold-dark: #bd8a35;
+    --text: #fff9eb;
+    --muted: #b8afc9;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(ellipse at top, #39254f 0%, transparent 55%),
+        var(--bg);
+}
+
+.app {
+    width: 100%;
+    max-width: 390px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    font-weight: bold;
+}
+
+h1 {
+    margin: 14px 0 8px;
+    font-size: clamp(34px, 9vw, 46px);
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+.ticket {
+    position: relative;
+    padding: 24px 18px 22px;
+    overflow: hidden;
+    border: 1px solid var(--gold-dark);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 50% 0%, #54402b 0%, transparent 55%),
+        linear-gradient(145deg, #30203d, #191323);
+    box-shadow: 0 18px 55px #0006;
+}
+
+.ticket-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+}
+
+.ticket-title {
+    margin: 12px 0 5px;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.ticket-description {
+    margin: 0 0 20px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.scratch-area {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at center, #fff2b7, #d6a64c 65%, #a36b28);
+}
+
+.result {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #26152d;
+    background:
+        radial-gradient(circle at center, #fff4c4, #f2cc6b 65%, #d69b37);
+}
+
+.result-symbol {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.result-text {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.result-caption {
+    font-size: 12px;
+}
+
+#scratchCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+    transition: opacity 0.45s ease;
+}
+
+.scratch-hint {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 16px;
+    border: 0;
+    border-radius: 13px;
+    color: #24182c;
+    background: linear-gradient(110deg, #ffe8a4, #d9a94f);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.status {
+    min-height: 20px;
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.footer {
+    margin-top: 24px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #80758f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition: none !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+    <div class="logo">✦ YOUR LOTTERY ✦</div>
+
+    <h1>JACKPOT</h1>
+
+    <div class="subtitle">
+        Твой билет. Твой шанс.<br>
+        Сотри защитный слой и открой результат.
+    </div>
+
+    <section class="ticket">
+        <div class="ticket-label">SPECIAL EDITION</div>
+        <div class="ticket-title">LUCKY TICKET</div>
+        <div class="ticket-description">
+            ✦ Удача может быть ближе, чем кажется ✦
+        </div>
+
+        <div class="scratch-area" id="scratchArea">
+            <div class="result">
+                <div class="result-symbol" id="resultSymbol">🍀</div>
+                <div class="result-text" id="resultText">УДАЧИ!</div>
+                <div class="result-caption" id="resultCaption">
+                    Сотри слой, чтобы узнать результат
+                </div>
+            </div>
+
+            <canvas id="scratchCanvas"></canvas>
+        </div>
+
+        <div class="scratch-hint" id="scratchHint">
+            ✧ Проведи пальцем или мышью по билету ✧
+        </div>
+    </section>
+
+    <button id="newTicket">ПОПРОБОВАТЬ ЕЩЁ РАЗ</button>
+
+    <div class="status" id="status">
+        Демо-режим: результаты пока не сохраняются.
+    </div>
+
+    <div class="footer">GOOD LUCK · PLAY FAIR</div>
+</main>
+
+<script>
+const canvas = document.getElementById("scratchCanvas");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+const area = document.getElementById("scratchArea");
+const button = document.getElementById("newTicket");
+const status = document.getElementById("status");
+const hint = document.getElementById("scratchHint");
+
+let scratching = false;
+let revealed = false;
+let lastX = 0;
+let lastY = 0;
+
+function drawCover() {
+    const rect = area.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalCompositeOperation = "source-over";
+
+    const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+    gradient.addColorStop(0, "#eee7f2");
+    gradient.addColorStop(0.45, "#a9a1b5");
+    gradient.addColorStop(1, "#e0d9e8");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    // Декоративная текстура защитного слоя.
+    for (let i = 0; i < 500; i++) {
+        ctx.fillStyle = i % 2 ? "#ffffff22" : "#50475e22";
+        ctx.beginPath();
+        ctx.arc(
+            Math.random() * rect.width,
+            Math.random() * rect.height,
+            Math.random() * 1.5 + 0.3,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+
+    ctx.fillStyle = "#393044";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 17px Arial";
+    ctx.fillText("SCRATCH TO REVEAL", rect.width / 2, rect.height / 2 - 8);
+
+    ctx.font = "12px Arial";
+    ctx.fillText("✦ GOOD LUCK ✦", rect.width / 2, rect.height / 2 + 18);
+
+    ctx.globalCompositeOperation = "destination-out";
+}
+
+function getPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+function scratch(event) {
+    if (!scratching || revealed) return;
+
+    event.preventDefault();
+
+    const pos = getPosition(event);
+
+    ctx.lineWidth = 34;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+
+    lastX = pos.x;
+    lastY = pos.y;
+
+    checkProgress();
+}
+
+function startScratch(event) {
+    if (revealed) return;
+
+    scratching = true;
+
+    const pos = getPosition(event);
+    lastX = pos.x;
+    lastY = pos.y;
+
+    try {
+        canvas.setPointerCapture(event.pointerId);
+    } catch (_) {}
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 17, 0, Math.PI * 2);
+    ctx.fill();
+
+    event.preventDefault();
+}
+
+function stopScratch() {
+    scratching = false;
+}
+
+function checkProgress() {
+    const pixels = ctx.getImageData(
+        0, 0, canvas.width, canvas.height
+    ).data;
+
+    let transparent = 0;
+    const total = pixels.length / 4;
+
+    // Проверяем каждый четвёртый пиксель для ускорения.
+    for (let i = 3; i < pixels.length; i += 16) {
+        if (pixels[i] < 128) transparent++;
+    }
+
+    const percent = transparent / (total / 4);
+
+    if (percent > 0.42) {
+        revealResult();
+    }
+}
+
+function revealResult() {
+    if (revealed) return;
+
+    revealed = true;
+    scratching = false;
+    canvas.style.opacity = "0";
+    hint.textContent = "✦ Билет открыт ✦";
+    status.textContent =
+        "Демо-режим: для настоящей лотереи подключим сервер.";
+
+    setTimeout(() => {
+        canvas.style.display = "none";
+    }, 450);
+}
+
+function newTicket() {
+    revealed = false;
+    scratching = false;
+
+    canvas.style.display = "block";
+    canvas.style.opacity = "1";
+
+    // Только демонстрационный результат.
+    // В настоящей игре результат будет получать с сервера.
+    const demoResult = {
+        symbol: "🍀",
+        text: "УДАЧИ!",
+        caption: "Это демонстрационный билет"
+    };
+
+    document.getElementById("resultSymbol").textContent =
+        demoResult.symbol;
+
+    document.getElementById("resultText").textContent =
+        demoResult.text;
+
+    document.getElementById("resultCaption").textContent =
+        demoResult.caption;
+
+    drawCover();
+
+    hint.textContent = "✧ Проведи пальцем или мышью по билету ✧";
+    status.textContent =
+        "Демо-режим: результаты пока не сохраняются.";
+}
+
+canvas.addEventListener("pointerdown", startScratch);
+canvas.addEventListener("pointermove", scratch);
+canvas.addEventListener("pointerup", stopScratch);
+canvas.addEventListener("pointercancel", stopScratch);
+canvas.addEventListener("lostpointercapture", stopScratch);
+
+button.addEventListener("click", newTicket);
+
+window.addEventListener("resize", () => {
+    if (!revealed) drawCover();
+});
+
+newTicket();
+</script>
+</body>
+</html>
