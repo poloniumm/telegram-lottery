@@ -1,297 +1,388 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#100d20">
+<meta name="theme-color" content="#180b0b">
 <title>Jackpot — Scratch Lottery</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --bg: #100d20;
-    --card: #1d1730;
-    --gold: #f7d783;
-    --gold-dark: #bd8a35;
-    --text: #fff9eb;
-    --muted: #b8afc9;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
     min-height: 100vh;
-    padding: 24px 16px;
+    padding: 20px 12px 35px;
     display: flex;
     justify-content: center;
     align-items: center;
+    background: radial-gradient(ellipse at top, #542016, #160b10 75%);
     font-family: Arial, sans-serif;
-    color: var(--text);
-    background:
-        radial-gradient(ellipse at top, #39254f 0%, transparent 55%),
-        var(--bg);
+    color: #fff4d8;
 }
 
 .app {
     width: 100%;
-    max-width: 390px;
+    max-width: 560px;
     text-align: center;
 }
 
-.logo {
-    font-size: 13px;
-    letter-spacing: 5px;
-    color: var(--gold);
+.heading {
+    margin-bottom: 14px;
+    color: #f5d58a;
+    font-size: 12px;
+    letter-spacing: 4px;
     font-weight: bold;
 }
 
-h1 {
-    margin: 14px 0 8px;
-    font-size: clamp(34px, 9vw, 46px);
-    letter-spacing: 2px;
+.description {
+    margin: 0 0 18px;
+    color: #e6cda5;
+    font-size: 13px;
 }
 
-.subtitle {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 28px;
-}
+/* Основа билета */
 
 .ticket {
     position: relative;
-    padding: 24px 18px 22px;
-    overflow: hidden;
-    border: 1px solid var(--gold-dark);
-    border-radius: 22px;
-    background:
-        radial-gradient(circle at 50% 0%, #54402b 0%, transparent 55%),
-        linear-gradient(145deg, #30203d, #191323);
-    box-shadow: 0 18px 55px #0006;
-}
-
-.ticket-label {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--gold);
-}
-
-.ticket-title {
-    margin: 12px 0 5px;
-    font-size: 26px;
-    font-weight: 900;
-}
-
-.ticket-description {
-    margin: 0 0 20px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.scratch-area {
-    position: relative;
     width: 100%;
-    height: 180px;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
-    border-radius: 14px;
-    background:
-        radial-gradient(circle at center, #fff2b7, #d6a64c 65%, #a36b28);
+    border-radius: 12px;
+    box-shadow: 0 15px 45px #0009;
+    background: #8e2118;
 }
 
-.result {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    color: #26152d;
-    background:
-        radial-gradient(circle at center, #fff4c4, #f2cc6b 65%, #d69b37);
-}
-
-.result-symbol {
-    font-size: 48px;
-    line-height: 1;
-}
-
-.result-text {
-    font-size: 24px;
-    font-weight: 900;
-    letter-spacing: 1px;
-}
-
-.result-caption {
-    font-size: 12px;
-}
-
-#scratchCanvas {
+.ticket-background {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    touch-action: none;
-    cursor: crosshair;
-    transition: opacity 0.45s ease;
+    object-fit: contain;
+    display: block;
 }
 
-.scratch-hint {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: 12px;
+/* Игровые окошки */
+
+.reel {
+    position: absolute;
+    top: 69.1%;
+    height: 14.2%;
+    width: 21.1%;
+    overflow: hidden;
+    background: #b7b2a7;
+}
+
+/* Координаты трёх окошек относительно билета */
+
+.reel:nth-child(2) { left: 15.7%; }
+.reel:nth-child(3) { left: 37.5%; }
+.reel:nth-child(4) { left: 59.4%; }
+
+.symbol {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 7%;
+    background: linear-gradient(145deg, #fff1c5, #d8c6a2);
+}
+
+.symbol img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Стираемый слой */
+
+.scratch-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.ticket-result {
+    min-height: 58px;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid #a87932;
+    border-radius: 12px;
+    background: #321510;
+    color: #f8d98c;
+    font-weight: bold;
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.4;
+}
+
+.ticket-result.win {
+    background: linear-gradient(120deg, #693a0c, #a56b19);
+    border-color: #ffdf83;
+    animation: celebration 0.8s ease infinite alternate;
+}
+
+@keyframes celebration {
+    from { box-shadow: 0 0 5px #ffce63; }
+    to { box-shadow: 0 0 24px #ffce63; }
 }
 
 button {
     width: 100%;
-    margin-top: 22px;
+    margin-top: 15px;
     padding: 16px;
-    border: 0;
-    border-radius: 13px;
-    color: #24182c;
-    background: linear-gradient(110deg, #ffe8a4, #d9a94f);
-    font-size: 15px;
-    font-weight: 800;
+    border: 1px solid #f5d58a;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #ffe7a1, #bd812b);
+    color: #30150d;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 button:active {
     transform: scale(0.98);
 }
 
-button:disabled {
-    opacity: 0.55;
-    cursor: default;
-}
-
-.status {
-    min-height: 20px;
-    margin-top: 16px;
-    color: var(--muted);
-    font-size: 12px;
+.note {
+    margin-top: 13px;
+    color: #c7a98d;
+    font-size: 11px;
     line-height: 1.5;
-}
-
-.footer {
-    margin-top: 24px;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #80758f;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        transition: none !important;
-    }
 }
 </style>
 </head>
 
 <body>
+
 <main class="app">
-    <div class="logo">✦ YOUR LOTTERY ✦</div>
 
-    <h1>JACKPOT</h1>
+    <div class="heading">✦ WELCOME TO THE JACKPOT ✦</div>
 
-    <div class="subtitle">
-        Твой билет. Твой шанс.<br>
-        Сотри защитный слой и открой результат.
-    </div>
+    <p class="description">
+        Открой три окошка и узнай, повезло ли тебе!
+    </p>
 
-    <section class="ticket">
-        <div class="ticket-label">SPECIAL EDITION</div>
-        <div class="ticket-title">LUCKY TICKET</div>
-        <div class="ticket-description">
-            ✦ Удача может быть ближе, чем кажется ✦
-        </div>
+    <section class="ticket" id="ticket">
 
-        <div class="scratch-area" id="scratchArea">
-            <div class="result">
-                <div class="result-symbol" id="resultSymbol">🍀</div>
-                <div class="result-text" id="resultText">УДАЧИ!</div>
-                <div class="result-caption" id="resultCaption">
-                    Сотри слой, чтобы узнать результат
-                </div>
+        <!-- Фоновое изображение билета -->
+        <img
+            class="ticket-background"
+            src="./assets/ticket/jackpot-ticket.png"
+            alt="Jackpot lottery ticket"
+        >
+
+        <!-- Первое окошко -->
+        <div class="reel">
+            <div class="symbol">
+                <img id="symbol1" src="" alt="Символ 1">
             </div>
-
-            <canvas id="scratchCanvas"></canvas>
+            <canvas class="scratch-canvas"></canvas>
         </div>
 
-        <div class="scratch-hint" id="scratchHint">
-            ✧ Проведи пальцем или мышью по билету ✧
+        <!-- Второе окошко -->
+        <div class="reel">
+            <div class="symbol">
+                <img id="symbol2" src="" alt="Символ 2">
+            </div>
+            <canvas class="scratch-canvas"></canvas>
         </div>
+
+        <!-- Третье окошко -->
+        <div class="reel">
+            <div class="symbol">
+                <img id="symbol3" src="" alt="Символ 3">
+            </div>
+            <canvas class="scratch-canvas"></canvas>
+        </div>
+
     </section>
 
-    <button id="newTicket">ПОПРОБОВАТЬ ЕЩЁ РАЗ</button>
-
-    <div class="status" id="status">
-        Демо-режим: результаты пока не сохраняются.
+    <div class="ticket-result" id="result">
+        ✧ Сотри все три окошка ✧
     </div>
 
-    <div class="footer">GOOD LUCK · PLAY FAIR</div>
+    <button id="newTicket">
+        ПОЛУЧИТЬ НОВЫЙ БИЛЕТ
+    </button>
+
+    <div class="note">
+        Демонстрационная версия Jackpot.
+        Результаты пока генерируются в браузере и не сохраняются.
+    </div>
+
 </main>
 
 <script>
-const canvas = document.getElementById("scratchCanvas");
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
-const area = document.getElementById("scratchArea");
-const button = document.getElementById("newTicket");
-const status = document.getElementById("status");
-const hint = document.getElementById("scratchHint");
 
-let scratching = false;
-let revealed = false;
-let lastX = 0;
-let lastY = 0;
+// ==========================================
+// 1. ИГРОВЫЕ СИМВОЛЫ
+// ==========================================
 
-function drawCover() {
-    const rect = area.getBoundingClientRect();
+const SYMBOLS = {
+    lesha: "./assets/symbols/lesha.png",
+    seven: "./assets/symbols/seven.png",
+    cherries: "./assets/symbols/cherries.png",
+    star: "./assets/symbols/star.png",
+    diamond: "./assets/symbols/diamond.png",
+    lemon: "./assets/symbols/lemon.png",
+    clover: "./assets/symbols/clover.png"
+};
+
+// ==========================================
+// 2. ОПРЕДЕЛЕНИЕ КОМБИНАЦИИ
+// ==========================================
+
+function generateCombination() {
+
+    const random = Math.random();
+
+    // Демонстрационный суперприз
+    if (random < 0.02) {
+        return ["lesha", "lesha", "lesha"];
+    }
+
+    // Промежуточный приз
+    if (random < 0.10) {
+        return ["cherries", "cherries", "cherries"];
+    }
+
+    // Небольшой приз
+    if (random < 0.20) {
+        return ["star", "star", "star"];
+    }
+
+    // Остальные комбинации
+    const available = [
+        "seven",
+        "cherries",
+        "star",
+        "diamond",
+        "lemon",
+        "clover"
+    ];
+
+    return [
+        randomSymbol(available),
+        randomSymbol(available),
+        randomSymbol(available)
+    ];
+}
+
+function randomSymbol(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+// ==========================================
+// 3. РАБОТА СО СТИРАЕМЫМИ ОКОШКАМИ
+// ==========================================
+
+const canvases = Array.from(
+    document.querySelectorAll(".scratch-canvas")
+);
+
+const revealed = [false, false, false];
+
+const resultElement = document.getElementById("result");
+
+let currentCombination = [];
+
+function drawScratchLayer(canvas) {
+
+    const rect = canvas.getBoundingClientRect();
+
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     canvas.width = Math.round(rect.width * dpr);
     canvas.height = Math.round(rect.height * dpr);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.globalCompositeOperation = "source-over";
+    const ctx = canvas.getContext("2d", {
+        willReadFrequently: true
+    });
 
-    const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    gradient.addColorStop(0, "#eee7f2");
-    gradient.addColorStop(0.45, "#a9a1b5");
-    gradient.addColorStop(1, "#e0d9e8");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Серебристый защитный слой
+
+    const gradient = ctx.createLinearGradient(
+        0, 0, rect.width, rect.height
+    );
+
+    gradient.addColorStop(0, "#e9e3d7");
+    gradient.addColorStop(0.45, "#aaa9a5");
+    gradient.addColorStop(1, "#d9d1c1");
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // Декоративная текстура защитного слоя.
-    for (let i = 0; i < 500; i++) {
-        ctx.fillStyle = i % 2 ? "#ffffff22" : "#50475e22";
+    // Металлическая текстура
+
+    for (let i = 0; i < 180; i++) {
+
+        ctx.strokeStyle =
+            i % 2 ? "#ffffff35" : "#554c4030";
+
+        ctx.lineWidth = 1;
+
+        const x = Math.random() * rect.width;
+        const y = Math.random() * rect.height;
+
         ctx.beginPath();
-        ctx.arc(
-            Math.random() * rect.width,
-            Math.random() * rect.height,
-            Math.random() * 1.5 + 0.3,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 12, y + 8);
+        ctx.stroke();
     }
 
-    ctx.fillStyle = "#393044";
+    // Надпись
+
+    ctx.fillStyle = "#453b37";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "bold 17px Arial";
-    ctx.fillText("SCRATCH TO REVEAL", rect.width / 2, rect.height / 2 - 8);
 
-    ctx.font = "12px Arial";
-    ctx.fillText("✦ GOOD LUCK ✦", rect.width / 2, rect.height / 2 + 18);
+    ctx.font = "bold 10px Arial";
+
+    ctx.fillText(
+        "SCRATCH",
+        rect.width / 2,
+        rect.height / 2 - 5
+    );
+
+    ctx.font = "8px Arial";
+
+    ctx.fillText(
+        "✦ JACKPOT ✦",
+        rect.width / 2,
+        rect.height / 2 + 10
+    );
 
     ctx.globalCompositeOperation = "destination-out";
+
+    return ctx;
 }
 
-function getPosition(event) {
+const contexts = canvases.map(drawScratchLayer);
+
+const scratching = [false, false, false];
+
+const lastPositions = [
+    {x: 0, y: 0},
+    {x: 0, y: 0},
+    {x: 0, y: 0}
+];
+
+function getPosition(canvas, event) {
+
     const rect = canvas.getBoundingClientRect();
 
     return {
@@ -300,36 +391,18 @@ function getPosition(event) {
     };
 }
 
-function scratch(event) {
-    if (!scratching || revealed) return;
+function startScratch(index, event) {
 
-    event.preventDefault();
+    if (revealed[index]) return;
 
-    const pos = getPosition(event);
+    scratching[index] = true;
 
-    ctx.lineWidth = 34;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    const canvas = canvases[index];
+    const ctx = contexts[index];
 
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
+    const pos = getPosition(canvas, event);
 
-    lastX = pos.x;
-    lastY = pos.y;
-
-    checkProgress();
-}
-
-function startScratch(event) {
-    if (revealed) return;
-
-    scratching = true;
-
-    const pos = getPosition(event);
-    lastX = pos.x;
-    lastY = pos.y;
+    lastPositions[index] = pos;
 
     try {
         canvas.setPointerCapture(event.pointerId);
@@ -342,89 +415,252 @@ function startScratch(event) {
     event.preventDefault();
 }
 
-function stopScratch() {
-    scratching = false;
+function moveScratch(index, event) {
+
+    if (!scratching[index] || revealed[index]) return;
+
+    const canvas = canvases[index];
+    const ctx = contexts[index];
+
+    const pos = getPosition(canvas, event);
+    const last = lastPositions[index];
+
+    ctx.lineWidth = 35;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+
+    lastPositions[index] = pos;
+
+    event.preventDefault();
+
+    checkScratchProgress(index);
 }
 
-function checkProgress() {
+function stopScratch(index) {
+    scratching[index] = false;
+}
+
+// ==========================================
+// 4. ПРОВЕРКА ПРОГРЕССА СТИРАНИЯ
+// ==========================================
+
+function checkScratchProgress(index) {
+
+    const canvas = canvases[index];
+
+    const ctx = contexts[index];
+
     const pixels = ctx.getImageData(
         0, 0, canvas.width, canvas.height
     ).data;
 
     let transparent = 0;
-    const total = pixels.length / 4;
+    let total = 0;
 
-    // Проверяем каждый четвёртый пиксель для ускорения.
+    // Анализируем каждый четвёртый пиксель
+
     for (let i = 3; i < pixels.length; i += 16) {
-        if (pixels[i] < 128) transparent++;
+
+        total++;
+
+        if (pixels[i] < 128) {
+            transparent++;
+        }
     }
 
-    const percent = transparent / (total / 4);
+    const percentage = transparent / total;
 
-    if (percent > 0.42) {
-        revealResult();
+    if (percentage > 0.43) {
+        revealWindow(index);
     }
 }
 
-function revealResult() {
-    if (revealed) return;
+function revealWindow(index) {
 
-    revealed = true;
-    scratching = false;
+    if (revealed[index]) return;
+
+    revealed[index] = true;
+
+    scratching[index] = false;
+
+    const canvas = canvases[index];
+
+    canvas.style.transition = "opacity 0.35s ease";
     canvas.style.opacity = "0";
-    hint.textContent = "✦ Билет открыт ✦";
-    status.textContent =
-        "Демо-режим: для настоящей лотереи подключим сервер.";
+    canvas.style.pointerEvents = "none";
 
     setTimeout(() => {
         canvas.style.display = "none";
-    }, 450);
+    }, 350);
+
+    updateProgress();
 }
+
+// ==========================================
+// 5. ПРОВЕРКА ВЫИГРЫША
+// ==========================================
+
+function updateProgress() {
+
+    const opened = revealed.filter(Boolean).length;
+
+    if (opened < 3) {
+
+        resultElement.classList.remove("win");
+
+        resultElement.textContent =
+            `Открыто окошек: ${opened} из 3`;
+
+        return;
+    }
+
+    checkCombination();
+}
+
+function checkCombination() {
+
+    const [a, b, c] = currentCombination;
+
+    let message = "";
+    let isWin = false;
+
+    if (a === "lesha" && b === "lesha" && c === "lesha") {
+
+        message = "👑 ДЖЕКПОТ! ТЫ ВЫИГРАЛ СУПЕРПРИЗ! 👑";
+        isWin = true;
+
+    } else if (
+        a === "cherries" &&
+        b === "cherries" &&
+        c === "cherries"
+    ) {
+
+        message = "🍒 ПОЗДРАВЛЯЕМ! ПРОМЕЖУТОЧНЫЙ ПРИЗ!";
+        isWin = true;
+
+    } else if (
+        a === "star" &&
+        b === "star" &&
+        c === "star"
+    ) {
+
+        message = "⭐ ТЫ ВЫИГРАЛ НЕБОЛЬШОЙ ПРИЗ!";
+        isWin = true;
+
+    } else if (
+        a === "diamond" &&
+        b === "diamond" &&
+        c === "diamond"
+    ) {
+
+        message = "💎 РЕДКИЙ ПРИЗ! ПОЗДРАВЛЯЕМ!";
+        isWin = true;
+
+    } else {
+
+        message = "🍀 В этот раз без выигрыша. Попробуй ещё!";
+    }
+
+    resultElement.textContent = message;
+
+    resultElement.classList.toggle("win", isWin);
+}
+
+// ==========================================
+// 6. СОЗДАНИЕ НОВОГО БИЛЕТА
+// ==========================================
 
 function newTicket() {
-    revealed = false;
-    scratching = false;
 
-    canvas.style.display = "block";
-    canvas.style.opacity = "1";
+    currentCombination = generateCombination();
 
-    // Только демонстрационный результат.
-    // В настоящей игре результат будет получать с сервера.
-    const demoResult = {
-        symbol: "🍀",
-        text: "УДАЧИ!",
-        caption: "Это демонстрационный билет"
-    };
+    resultElement.classList.remove("win");
 
-    document.getElementById("resultSymbol").textContent =
-        demoResult.symbol;
+    resultElement.textContent =
+        "✧ Сотри все три окошка ✧";
 
-    document.getElementById("resultText").textContent =
-        demoResult.text;
+    for (let i = 0; i < 3; i++) {
 
-    document.getElementById("resultCaption").textContent =
-        demoResult.caption;
+        revealed[i] = false;
+        scratching[i] = false;
 
-    drawCover();
+        const img = document.getElementById(
+            `symbol${i + 1}`
+        );
 
-    hint.textContent = "✧ Проведи пальцем или мышью по билету ✧";
-    status.textContent =
-        "Демо-режим: результаты пока не сохраняются.";
+        img.src = SYMBOLS[currentCombination[i]];
+
+        const canvas = canvases[i];
+
+        canvas.style.display = "block";
+        canvas.style.opacity = "1";
+        canvas.style.pointerEvents = "auto";
+
+        drawScratchLayer(canvas);
+    }
 }
 
-canvas.addEventListener("pointerdown", startScratch);
-canvas.addEventListener("pointermove", scratch);
-canvas.addEventListener("pointerup", stopScratch);
-canvas.addEventListener("pointercancel", stopScratch);
-canvas.addEventListener("lostpointercapture", stopScratch);
+// ==========================================
+// 7. ОБРАБОТЧИКИ СОБЫТИЙ
+// ==========================================
 
-button.addEventListener("click", newTicket);
+canvases.forEach((canvas, index) => {
+
+    canvas.addEventListener("pointerdown", event => {
+        startScratch(index, event);
+    });
+
+    canvas.addEventListener("pointermove", event => {
+        moveScratch(index, event);
+    });
+
+    canvas.addEventListener("pointerup", () => {
+        stopScratch(index);
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+        stopScratch(index);
+    });
+
+    canvas.addEventListener("lostpointercapture", () => {
+        stopScratch(index);
+    });
+});
+
+document.getElementById("newTicket")
+    .addEventListener("click", newTicket);
 
 window.addEventListener("resize", () => {
-    if (!revealed) drawCover();
+
+    for (let i = 0; i < 3; i++) {
+
+        if (!revealed[i]) {
+            drawScratchLayer(canvases[i]);
+        }
+    }
+});
+
+// Проверка загрузки изображений
+
+Object.entries(SYMBOLS).forEach(([name, path]) => {
+
+    const img = new Image();
+
+    img.onerror = () => {
+        console.error("Не удалось загрузить символ:", name, path);
+    };
+
+    img.src = path;
 });
 
 newTicket();
+
 </script>
+
 </body>
 </html>
